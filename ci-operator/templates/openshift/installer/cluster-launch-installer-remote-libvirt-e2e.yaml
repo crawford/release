@@ -324,6 +324,7 @@ objects:
         if [[ "${ARCH}" = "s390x" ]]; then
             master_type=null
             subnets="[]"
+            subnet_num=$((16#${JOB_NAME_HASH} % 4 + 1))
             cat > /tmp/artifacts/installer/install-config.yaml << EOF
         apiVersion: v1
         baseDomain: ${BASE_DOMAIN}
@@ -338,7 +339,7 @@ objects:
           clusterNetwork:
           - cidr: 10.128.0.0/14
             hostPrefix: 23
-          machineCIDR: 192.168.126.0/24
+          machineCIDR: 192.168.${subnet_num}.0/24
           networkType: OpenShiftSDN
           serviceNetwork:
           - 172.30.0.0/16
@@ -379,7 +380,7 @@ objects:
             libvirt_network=$(mock-nss.sh virsh --connect "${REMOTE_LIBVIRT_URI}" net-list --name | grep "${NAMESPACE}-${JOB_NAME_HASH}" || true)
             if [[ -n "${libvirt_network}" ]]; then
                 cat > /tmp/artifacts/installer/worker-hostrecords.xml << EOF
-        <host ip='192.168.126.51'>
+        <host ip='192.168.${subnet_num}.51'>
           <hostname>alertmanager-main-openshift-monitoring.apps.${NAMESPACE}-${JOB_NAME_HASH}.${BASE_DOMAIN}</hostname>
           <hostname>console-openshift-console.apps.${NAMESPACE}-${JOB_NAME_HASH}.${BASE_DOMAIN}</hostname>
           <hostname>downloads-openshift-console.apps.${NAMESPACE}-${JOB_NAME_HASH}.${BASE_DOMAIN}</hostname>
